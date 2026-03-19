@@ -1,0 +1,59 @@
+# ============================================================
+# Flowdesk — Root .gitignore
+# ============================================================
+
+# ─── Node / NPM ─────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json         # Optionally commit lock files; keeping here for clean pushes
+*.log
+
+# ─── Environment / Secrets ──────────────────────────────────
+.env
+.env.*
+!.env.example             # Always commit the example template
+
+# ─── Build Outputs ───────────────────────────────────────────
+dist/
+build/
+out/
+.output/
+
+# ─── OS / Editor ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ─── Vite / React ─────────────────────────────────────────────
+.vite/
+vite.config.js.timestamp*
+
+# ─── TypeScript ───────────────────────────────────────────────
+*.tsbuildinfo
+
+# ─── Temporary / Debug files ──────────────────────────────────
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+final_repair.js
+fix_tags.js
+
+# ─── Figma source files (design assets, not code) ─────────────
+app/FigmaSRC/
+
+# ─── Build spec / internal docs ───────────────────────────────
+flowdesk-build-spec.html
+
+# ─── Redis / DB local dumps ───────────────────────────────────
+dump.rdb
+*.rdb
