@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Personal Productivity OS",
   "scripts": {
+    "build": "cd app && npm run build",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd app && npm run dev"

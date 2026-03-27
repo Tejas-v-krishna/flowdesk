@@ -43,7 +43,7 @@ export default function App() {
   useEffect(() => {
     if (!isAuthenticated || !user) return;
 
-    const socket = io("http://localhost:5000", {
+    const socket = io(import.meta.env.VITE_API_URL || "", {
       withCredentials: true,
     });
 
