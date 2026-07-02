@@ -13,9 +13,10 @@ export function PlaceholderPage() {
       <h3 className="text-white text-[16px] tracking-[-0.3px] mb-1" style={{ fontWeight: 600 }}>
         {displayName || "Page"} — Coming Soon
       </h3>
-      <p className="text-[#777] text-[13px] tracking-[-0.2px]">
+      <p className="text-muted-foreground text-[13px] tracking-[-0.2px]">
         This section is under construction.
       </p>
     </div>
   );
 }
+

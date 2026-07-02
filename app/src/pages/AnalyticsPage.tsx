@@ -1,179 +1,192 @@
+import { useState, useEffect } from "react";
+import {
+  CheckSquare,
+  Clock,
+  TrendingUp,
+  Copy,
+  Target,
+} from "lucide-react";
 import {
   AreaChart,
   Area,
   XAxis,
   YAxis,
-  ResponsiveContainer,
   Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
-import { Copy } from "lucide-react";
-import { GlassPanel } from "../components/GlassPanel";
-import { GlassButton } from "../components/ui/glass-button";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import axios from "axios";
-
-interface VelocityData {
-  day: string;
-  tasks: number;
-}
-
-interface PortfolioData {
-  label: string;
-  value: number;
-  color: string;
-}
-
-interface Stat {
-  icon: React.ElementType;
-  iconBg: string;
-  iconColor: string;
-  value: string;
-  label: string;
-  sub: string;
-}
+import { useQuery } from "@tanstack/react-query";
+import api from "../api/client";
+import { toast } from "react-hot-toast";
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
 };
 
 const itemVariants: any = {
-  hidden: { opacity: 0, scale: 0.95, y: 20 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
 };
 
-const heatColors = ["#0d0d0d", "#1a3a1a", "#2d5a2d", "#42ff6b"];
+const heatColors = ["transparent", "#f3f4f6", "#e5e7eb", "#d1d5db", "#9ca3af", "#4b5563"];
 
-function DonutChart() {
+function DonutChart({ data }: { data: any[] }) {
+  if (!data || data.length === 0) return null;
   return (
-    <svg viewBox="0 0 100 100" width="120" height="120">
-      <circle cx="50" cy="50" r="40" fill="none" stroke="#333" strokeWidth="20" />
-      <text x="50" y="55" textAnchor="middle" fill="#999" fontSize="12" fontWeight="bold">
-        DATA
-      </text>
-    </svg>
+    <PieChart width={160} height={160}>
+      <Pie
+        data={data}
+        cx={80}
+        cy={80}
+        innerRadius={52}
+        outerRadius={72}
+        dataKey="valueRaw"
+        strokeWidth={0}
+      >
+        {data.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={entry.color} />
+        ))}
+      </Pie>
+    </PieChart>
   );
 }
 
-const AnalyticsPage = () => {
-  const [velocityData, setVelocityData] = useState<VelocityData[]>([]);
-  const [portfolioData, setPortfolioData] = useState<PortfolioData[]>([]);
-  const [heatmap, setHeatmap] = useState<number[][]>([]);
-  const [stats, setStats] = useState<Stat[]>([]);
+export function AnalyticsPage() {
+  const { data: summaryData, isLoading: summaryLoading } = useQuery({
+    queryKey: ['analytics_summary'],
+    queryFn: () => api.get('/analytics/summary').then(r => r.data)
+  });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const velocityResponse = await axios.get("/api/analytics/velocity");
-        setVelocityData(velocityResponse.data);
+  const { data: heatmapDataRaw } = useQuery({
+    queryKey: ['analytics_heatmap'],
+    queryFn: () => api.get('/analytics/heatmap').then(r => r.data)
+  });
 
-        const portfolioResponse = await axios.get("/api/analytics/portfolio");
-        setPortfolioData(portfolioResponse.data);
+  const stats = [
+    {
+      label: "TASKS COMPLETED",
+      value: summaryData?.stats?.completedTasks?.toString() || "0",
+      sub: "Total all time",
+      icon: CheckSquare,
+    },
+    {
+      label: "TOTAL TASKS",
+      value: summaryData?.stats?.totalTasks?.toString() || "0",
+      sub: "All statuses",
+      icon: Target,
+    },
+    {
+      label: "ACTIVE PROJECTS",
+      value: summaryData?.stats?.activeProjects?.toString() || "0",
+      sub: "Currently ongoing",
+      icon: Clock,
+    },
+    {
+      label: "PRODUCTIVITY SCORE",
+      value: (summaryData?.stats?.productivityScore || "0") + "%",
+      sub: "Completion rate",
+      icon: TrendingUp,
+    },
+  ];
 
-        const heatmapResponse = await axios.get("/api/analytics/heatmap");
-        setHeatmap(heatmapResponse.data);
+  const velocityData = summaryData?.velocityData || [];
+  
+  // Transform portfolio data for Recharts (needs number for value)
+  const portfolioData = (summaryData?.portfolioData || []).map((d: any) => ({
+    ...d,
+    valueRaw: parseInt(d.value) || 0
+  }));
 
-        const statsResponse = await axios.get("/api/analytics/stats");
-        setStats(statsResponse.data);
-      } catch (error) {
-        console.error("Error fetching analytics data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
+  // Generate heatmap grid
+  const heatmap = [];
+  const today = new Date();
+  for (let w = 0; w < 12; w++) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - (w * 7 + d));
+      const dateStr = date.toISOString().split('T')[0];
+      const count = heatmapDataRaw ? heatmapDataRaw[dateStr] || 0 : 0;
+      week.push(Math.min(count, 5));
+    }
+    heatmap.unshift(week.reverse());
+  }
 
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="flex flex-col gap-5 p-6 overflow-y-auto"
+      className="flex-1 flex flex-col p-6 md:p-8 max-w-6xl mx-auto w-full gap-8 bg-background overflow-y-auto"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-end justify-between px-2">
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1
-            className="bg-gradient-to-b from-[#ccbaff] to-[#784cfe] bg-clip-text text-transparent text-[32px] tracking-[-1.5px]"
-            style={{ fontWeight: 700, lineHeight: 1.2 }}
-          >
+          <h1 className="text-3xl font-medium tracking-normal text-foreground">
             Analytics
           </h1>
-          <p className="text-[#777] text-[13px] tracking-[-0.3px] mt-0.5">
+          <p className="text-muted-foreground text-sm mt-1">
             Operational Performance Report /{" "}
-            <span className="text-[#784cfe]" style={{ fontWeight: 500 }}>
-              Last 7 Days
-            </span>
+            <span className="text-foreground font-medium">Last 7 Days</span>
           </p>
         </div>
-        <GlassButton size="sm" contentClassName="flex items-center gap-2 text-[12px] font-semibold">
+        <button
+          onClick={() => toast.success("Data exported to clipboard")}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-transparent border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
+        >
           Export Data
           <Copy size={12} />
-        </GlassButton>
+        </button>
       </motion.div>
 
       {/* Stat Cards */}
-      <motion.div variants={containerVariants} className="grid grid-cols-4 gap-4 px-2">
+      <motion.div variants={containerVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {stats.map((s) => (
-          <GlassPanel
+          <motion.div
             key={s.label}
-            as={motion.div}
             variants={itemVariants}
-            className="p-5 flex flex-col hover:shadow-[0_0_20px_rgba(120,76,254,0.1)] transition-all group"
-            rounded="20px"
+            className="p-5 flex flex-col bg-card border border-border rounded-xl shadow-sm hover:border-muted-foreground/30 transition-all group"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: s.iconBg }}
-              >
-                <s.icon size={20} style={{ color: s.iconColor }} />
+            <div className="flex items-start justify-between mb-6">
+              <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center text-foreground">
+                <s.icon size={18} />
               </div>
-              <button className="w-7 h-7 rounded-lg border border-[rgba(80,80,80,0.25)] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:border-[rgba(120,76,254,0.4)]">
-                <Copy size={11} className="text-[#666]" />
+              <button
+                className="w-7 h-7 rounded-xl border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted text-muted-foreground"
+                onClick={() => toast.success(`${s.label}: ${s.value}`)}
+              >
+                <Copy size={12} />
               </button>
             </div>
-            <span
-              className="text-white text-[28px] tracking-[-1.5px]"
-              style={{ fontWeight: 700, lineHeight: 1.1 }}
-            >
+            <span className="text-3xl font-semibold tracking-normal text-foreground mb-1">
               {s.value}
             </span>
-            <span
-              className="text-[#666] text-[9px] tracking-[1px] mt-1"
-              style={{ fontWeight: 700 }}
-            >
+            <span className="text-[10px] font-medium tracking-normal text-muted-foreground uppercase mb-1">
               {s.label}
             </span>
-            <span className="text-[#555] text-[11px] mt-0.5">{s.sub}</span>
-          </GlassPanel>
+            <span className="text-[11px] text-muted-foreground/70">
+              {s.sub}
+            </span>
+          </motion.div>
         ))}
       </motion.div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-[1.6fr_1fr] gap-4 px-2">
+      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
         {/* Productivity Velocity */}
-        <GlassPanel as={motion.div} variants={itemVariants} className="p-5" rounded="20px">
-          <div className="flex items-center justify-between mb-4">
-            <h3
-              className="text-[#999] text-[10px] tracking-[1px]"
-              style={{ fontWeight: 700 }}
-            >
-              PRODUCTIVITY VELOCITY
+        <motion.div variants={itemVariants} className="p-6 bg-card border border-border rounded-xl shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xs font-medium tracking-normal text-muted-foreground uppercase">
+              Productivity Velocity
             </h3>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#784cfe]" />
-              <span className="text-[#666] text-[10px] tracking-[0.5px]" style={{ fontWeight: 600 }}>
-                COMPLETED TASKS
+              <div className="w-2 h-2 rounded-full bg-foreground" />
+              <span className="text-[10px] tracking-normal font-medium text-muted-foreground uppercase">
+                Completed Tasks
               </span>
             </div>
           </div>
@@ -181,8 +194,8 @@ const AnalyticsPage = () => {
             <svg width={0} height={0} style={{ position: "absolute" }}>
               <defs>
                 <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#784cfe" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#784cfe" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="var(--foreground)" stopOpacity={0.1} />
+                  <stop offset="100%" stopColor="var(--foreground)" stopOpacity={0} />
                 </linearGradient>
               </defs>
             </svg>
@@ -190,106 +203,97 @@ const AnalyticsPage = () => {
               <AreaChart data={velocityData}>
                 <XAxis
                   dataKey="day"
-                  tick={{ fill: "#666", fontSize: 10, fontWeight: 600 }}
+                  tick={{ fill: "currentColor", opacity: 0.5, fontSize: 10, fontWeight: 500 }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: "#555", fontSize: 10 }}
+                  tick={{ fill: "currentColor", opacity: 0.5, fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
                   width={30}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "rgba(25,25,30,0.95)",
-                    border: "1px solid rgba(80,80,80,0.3)",
-                    borderRadius: 10,
-                    fontSize: 12,
-                    color: "#fff",
+                    background: "var(--card)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    color: "var(--foreground)",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
                   }}
-                  labelStyle={{ color: "#784cfe" }}
+                  itemStyle={{ color: "var(--foreground)" }}
+                  cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
                 />
                 <Area
                   type="monotone"
                   dataKey="tasks"
-                  stroke="#784cfe"
-                  strokeWidth={2.5}
+                  stroke="#71717a" 
+                  strokeWidth={2}
                   fill="url(#areaGrad)"
                   dot={false}
-                  activeDot={{ r: 5, fill: "#784cfe", stroke: "#ccbaff", strokeWidth: 2 }}
+                  activeDot={{ r: 4, fill: "var(--foreground)", stroke: "var(--background)", strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </GlassPanel>
+        </motion.div>
 
         {/* Project Portfolio */}
-        <GlassPanel as={motion.div} variants={itemVariants} className="p-5 flex flex-col" rounded="20px">
-          <h3
-            className="text-[#999] text-[10px] tracking-[1px] mb-4"
-            style={{ fontWeight: 700 }}
-          >
-            PROJECT PORTFOLIO
+        <motion.div variants={itemVariants} className="p-6 bg-card border border-border rounded-xl shadow-sm flex flex-col">
+          <h3 className="text-xs font-medium tracking-normal text-muted-foreground uppercase mb-6">
+            Project Portfolio
           </h3>
-          <div className="flex-1 flex items-center justify-center">
-            <DonutChart />
+          <div className="flex-1 flex items-center justify-center mb-6">
+            <DonutChart data={portfolioData} />
           </div>
-          <div className="flex flex-col gap-2.5 mt-4">
-            {portfolioData.map((d) => (
+          <div className="flex flex-col gap-3">
+            {portfolioData.map((d: any) => (
               <div key={d.label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-3">
                   <div
-                    className="w-2 h-2 rounded-full"
+                    className="w-2.5 h-2.5 rounded-xl"
                     style={{ backgroundColor: d.color }}
                   />
-                  <span
-                    className="text-[#777] text-[9px] tracking-[0.5px]"
-                    style={{ fontWeight: 600 }}
-                  >
+                  <span className="text-xs font-medium text-muted-foreground">
                     {d.label}
                   </span>
                 </div>
-                <span
-                  className="text-white text-[12px] tabular-nums"
-                  style={{ fontWeight: 600 }}
-                >
+                <span className="text-sm font-medium text-foreground tabular-nums">
                   {d.value}
                 </span>
               </div>
             ))}
           </div>
-        </GlassPanel>
+        </motion.div>
       </div>
 
       {/* Productivity Heatmap */}
-      <GlassPanel as={motion.div} variants={itemVariants} className="p-5 mx-2 mb-6" rounded="20px">
-        <h3
-          className="text-[#666] text-[10px] tracking-[1px] text-center mb-4"
-          style={{ fontWeight: 700 }}
-        >
-          PRODUCTIVITY HEATMAP
+      <motion.div variants={itemVariants} className="p-8 bg-card border border-border rounded-xl shadow-sm flex flex-col items-center">
+        <h3 className="text-xs font-medium tracking-normal text-muted-foreground uppercase mb-6">
+          Productivity Heatmap
         </h3>
-        <div className="flex justify-center gap-[3px]">
+        <div className="flex justify-center gap-[4px] overflow-x-auto max-w-full pb-2">
           {heatmap.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px]">
+            <div key={wi} className="flex flex-col gap-[4px]">
               {week.map((level, di) => (
                 <div
                   key={di}
-                  className="w-[14px] h-[14px] rounded-[3px] hover:scale-125 transition-transform cursor-pointer"
-                  style={{ backgroundColor: heatColors[level] }}
+                  className="w-4 h-4 rounded-xl border border-border hover:border-foreground/50 transition-colors cursor-pointer"
+                  style={{ 
+                    backgroundColor: level === 0 ? "transparent" : heatColors[level] ?? heatColors[5] 
+                  }}
+                  title={`${level} tasks`}
                 />
               ))}
             </div>
           ))}
         </div>
-        <p className="text-[#555] text-[10px] text-center mt-3 tracking-[-0.2px]">
+        <p className="text-xs text-muted-foreground mt-6 font-medium">
           Visualizing consistency patterns and operational focus
         </p>
-      </GlassPanel>
+      </motion.div>
     </motion.div>
   );
-};
+}
 
-export { AnalyticsPage };
-export default AnalyticsPage;

@@ -1,4 +1,4 @@
-import { MoreHorizontal, FolderOpen, X, MoreVertical, Layers, ChevronRight, Eye, Edit2, Archive, Trash2, ExternalLink, Edit3 } from "lucide-react";
+import { MoreHorizontal, FolderOpen, X, Layers, ChevronRight, Eye, Edit2, Archive, Trash2, ExternalLink, Edit3 } from "lucide-react";
 import { GlassPanel } from "./GlassPanel";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,82 +45,88 @@ export function TaskOverview({ projects = [] }: Props) {
     <>
       <GlassPanel blur={40} className="p-6 flex flex-col h-full">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-foreground text-[16px] font-semibold tracking-tight flex items-center gap-2">
-            <FolderOpen size={18} className="text-primary" />
-            Project Overview
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-foreground text-[18px] font-bold tracking-normal flex items-center gap-2">
+            <div className="w-8 h-8 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <FolderOpen size={18} className="text-primary" />
+            </div>
+            Initiatives
           </h3>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="w-7 h-7 rounded-full bg-[rgba(204,186,255,0.1)] flex items-center justify-center hover:bg-[rgba(204,186,255,0.2)] transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer border border-border/20"
           >
-            <MoreHorizontal size={14} className="text-[#ccbaff]" />
+            <MoreHorizontal size={14} />
           </button>
         </div>
 
         {/* Project List */}
-        <div className="flex flex-col gap-3 flex-1">
+        <div className="flex flex-col gap-4 flex-1">
           {projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 h-full opacity-60">
-              <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+              <div className="w-16 h-16 rounded-2xl bg-muted/30 flex items-center justify-center mb-4 border border-border/20">
                 <FolderOpen size={28} className="text-muted-foreground/30" />
               </div>
-              <p className="text-foreground font-medium text-[15px] tracking-tight">No active projects</p>
-              <p className="text-muted-foreground text-[12px] mt-1">Start a new initiative to track progress</p>
+              <p className="text-foreground font-semibold text-[15px] tracking-normal">Focus on what matters</p>
+              <p className="text-muted-foreground text-[12px] mt-1 text-center font-medium">Add a project to start tracking your daily progress.</p>
             </div>
           ) : (
             projects.map((p) => (
               <ContextMenu key={p._id}>
                 <ContextMenuTrigger>
-                  <div
-                    className="flex items-center justify-between p-3.5 rounded-2xl bg-[rgba(3,0,12,0.3)] border border-[rgba(159,159,159,0.08)] hover:border-[rgba(204,186,255,0.25)] transition-all cursor-pointer group relative overflow-hidden"
+                  <motion.div
+                    whileHover={{ x: 4 }}
+                    className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/30 hover:border-primary/40 hover:bg-muted/40 transition-all cursor-pointer group relative overflow-hidden"
                     onClick={() => navigate("/projects")}
                   >
                     <div className="flex items-center gap-4 relative z-10">
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center"
-                        style={{ backgroundColor: `${p.color}20` }}
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner"
+                        style={{ backgroundColor: `${p.color}15`, border: `1px solid ${p.color}30` }}
                       >
-                        <Layers size={18} style={{ color: p.color }} />
+                        <Layers size={20} style={{ color: p.color }} />
                       </div>
                       <div className="flex-1 min-w-0 pr-4">
-                        <h4 className="text-foreground text-[14px] font-bold tracking-tight truncate w-full">
+                        <h4 className="text-foreground text-[15px] font-bold tracking-normal truncate w-full">
                           {p.title}
                         </h4>
-                        <p className="text-muted-foreground text-[11px] truncate">
+                        <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.5px] mt-0.5">
                           {p.status || "Ongoing"}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 relative z-10">
+                    <div className="flex items-center gap-4 relative z-10">
                       <div className="text-right">
-                        <div className="text-[#ccbaff] text-[12px]" style={{ fontWeight: 600 }}>
+                        <div className="text-foreground text-[13px] font-bold">
                           {p.progress || 0}%
                         </div>
-                        <div className="w-[60px] h-[3px] rounded-full bg-[rgba(255,255,255,0.05)] mt-1 overflow-hidden">
-                          <div
+                        <div className="w-[60px] h-[4px] rounded-full bg-muted mt-1.5 overflow-hidden border border-border/20">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${p.progress || 0}%` }}
                             className="h-full transition-all duration-1000"
                             style={{
-                              width: `${p.progress || 0}%`,
                               backgroundColor: p.color,
-                              boxShadow: `0 0 8px ${p.color}60`,
+                              boxShadow: `0 0 10px ${p.color}40`,
                             }}
                           />
                         </div>
                       </div>
-                      <ChevronRight size={14} className="text-[#ccbaff]/20 group-hover:text-[#ccbaff]/60 transition-colors" />
+                      <div className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                        <ChevronRight size={14} className="text-muted-foreground" />
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </ContextMenuTrigger>
                 <ContextMenuContent className="w-64">
-                  <ContextMenuLabel className="text-[#ccbaff]/80">{p.title}</ContextMenuLabel>
+                  <ContextMenuLabel className="text-[#ffffff]/80">{p.title}</ContextMenuLabel>
                   <ContextMenuSeparator />
                   <ContextMenuItem onClick={() => navigate("/projects")}>
-                    <Eye className="mr-2 h-4 w-4 text-[#784cfe]" />
+                    <Eye className="mr-2 h-4 w-4 text-[#000000]" />
                     View Project
                   </ContextMenuItem>
                   <ContextMenuItem onClick={() => toast.success("Edit mode coming soon!")}>
-                    <Edit2 className="mr-2 h-4 w-4 text-[#ccbaff]" />
+                    <Edit2 className="mr-2 h-4 w-4 text-[#ffffff]" />
                     Edit Project
                   </ContextMenuItem>
                   <ContextMenuItem onClick={() => toast.success("Project Archived")}>
@@ -142,7 +148,7 @@ export function TaskOverview({ projects = [] }: Props) {
         </div>
 
         <div className="mt-6 pt-4 border-t border-[rgba(204,186,255,0.1)] flex items-center justify-between">
-          <span className="text-[#ccbaff]/60 text-[11px] font-medium tracking-[1px] uppercase">
+          <span className="text-[#ffffff]/60 text-[11px] font-medium tracking-[1px] uppercase">
             Total Initiatives
           </span>
           <span className="text-white text-[16px] font-bold">
@@ -170,13 +176,13 @@ export function TaskOverview({ projects = [] }: Props) {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-[400px] rounded-3xl overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] bg-[rgba(25,25,30,0.85)] border border-[rgba(204,186,255,0.2)] backdrop-blur-2xl"
+                className="relative w-full max-w-[400px] rounded-2xl overflow-hidden shadow-sm bg-[rgba(25,25,30,0.85)] border border-[rgba(204,186,255,0.2)] backdrop-blur-2xl"
               >
                 <div className="p-8">
                   <div className="flex items-center justify-between mb-8">
                     <div>
-                      <h2 className="text-white text-[24px] tracking-[-1px] font-bold">Project Management</h2>
-                      <p className="text-[#ccbaff]/60 text-[13px] mt-1 font-medium">Quick actions for your initiatives</p>
+                      <h2 className="text-white text-[24px] font-bold">Project Management</h2>
+                      <p className="text-[#ffffff]/60 text-[13px] mt-1 font-medium">Quick actions for your initiatives</p>
                     </div>
                     <button
                       onClick={() => setIsModalOpen(false)}
@@ -188,8 +194,8 @@ export function TaskOverview({ projects = [] }: Props) {
 
                   <div className="flex flex-col gap-4">
                     {[
-                      { label: "View All Projects", icon: ExternalLink, color: "#784cfe", description: "Open full project overview" },
-                      { label: "Edit Projects", icon: Edit3, color: "#ccbaff", description: "Modify existing project details" },
+                      { label: "View All Projects", icon: ExternalLink, color: "#000000", description: "Open full project overview" },
+                      { label: "Edit Projects", icon: Edit3, color: "#ffffff", description: "Modify existing project details" },
                       { label: "Delete Archive", icon: Trash2, color: "#ff4242", description: "Cleanup old or archived data" }
                     ].map((action) => (
                       <button
@@ -204,10 +210,10 @@ export function TaskOverview({ projects = [] }: Props) {
                           <action.icon size={20} style={{ color: action.color }} />
                         </div>
                         <div className="flex-1">
-                          <div className="text-white text-[15px] font-semibold tracking-[-0.3px] group-hover:text-[#ccbaff] transition-colors">
+                          <div className="text-white text-[15px] font-semibold tracking-[-0.3px] group-hover:text-[#ffffff] transition-colors">
                             {action.label}
                           </div>
-                          <div className="text-[#ccbaff]/40 text-[11px] font-medium leading-none mt-1 uppercase tracking-[0.5px]">
+                          <div className="text-[#ffffff]/40 text-[11px] font-medium leading-none mt-1 uppercase tracking-[0.5px]">
                             {action.description}
                           </div>
                         </div>
@@ -217,7 +223,7 @@ export function TaskOverview({ projects = [] }: Props) {
 
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="w-full mt-8 py-4 rounded-2xl bg-gradient-to-r from-[#784cfe] to-[#ccbaff] text-white font-bold text-[15px] shadow-[0_10px_20px_-5px_rgba(120,76,254,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="w-full mt-8 py-4 rounded-2xl bg-gradient-to-r from-[#000000] to-[#ffffff] text-white font-bold text-[15px] shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all"
                   >
                     Close Manager
                   </button>
@@ -231,3 +237,4 @@ export function TaskOverview({ projects = [] }: Props) {
     </>
   );
 }
+

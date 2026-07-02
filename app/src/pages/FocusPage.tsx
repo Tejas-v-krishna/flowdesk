@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { Play, Pause, RotateCcw, Target } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { GlassButton } from "../components/ui/glass-button";
+import { useState, useEffect } from "react";
+import { Play, Pause, RotateCcw, Bell } from "lucide-react";
+import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
+    transition: { staggerChildren: 0.1 },
+  },
 };
 
 const itemVariants: any = {
@@ -16,8 +16,8 @@ const itemVariants: any = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
-  }
+    transition: { duration: 0.4, ease: "easeOut" },
+  },
 };
 
 type TimerMode = "pomodoro" | "short" | "long";
@@ -25,13 +25,20 @@ type TimerMode = "pomodoro" | "short" | "long";
 const MODE_DURATIONS: Record<TimerMode, number> = {
   pomodoro: 25 * 60,
   short: 5 * 60,
-  long: 15 * 60
+  long: 15 * 60,
+};
+
+const MODE_LABELS: Record<TimerMode, string> = {
+  pomodoro: "Focus Session",
+  short: "Short Break",
+  long: "Long Break",
 };
 
 export function FocusPage() {
   const [mode, setMode] = useState<TimerMode>("pomodoro");
   const [timeLeft, setTimeLeft] = useState(MODE_DURATIONS.pomodoro);
   const [isActive, setIsActive] = useState(false);
+  const [sessionsCompleted, setSessionsCompleted] = useState(0);
 
   useEffect(() => {
     let timer: any = null;
@@ -39,13 +46,31 @@ export function FocusPage() {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && isActive) {
+      // Timer completed
       setIsActive(false);
+      setSessionsCompleted((prev) => prev + 1);
+
+      // Show toast notification
+      const label = MODE_LABELS[mode];
+      toast.success(`${label} complete! 🎯`, {
+        duration: 5000,
+      });
+
+      // Browser notification (if permission granted)
+      if (Notification.permission === "granted") {
+        new Notification("Flowdesk Focus", {
+          body: `${label} complete! Time for ${mode === "pomodoro" ? "a break" : "focus"}.`,
+          icon: "/Group 5.svg",
+        });
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission();
+      }
     }
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft, mode]);
 
   const toggleTimer = () => setIsActive(!isActive);
 
@@ -66,75 +91,138 @@ export function FocusPage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const progress = timeLeft / MODE_DURATIONS[mode];
+  const circumference = 2 * Math.PI * 190;
+  const strokeOffset = circumference * progress;
+
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="flex-1 flex flex-col px-10 py-6 items-center justify-center font-['DM_Sans']"
+      className="flex-1 flex flex-col p-8 items-center justify-center font-sans bg-background overflow-hidden"
     >
       <motion.div variants={itemVariants} className="mb-10 text-center">
-        <h1 className="bg-gradient-to-b from-[#ccbaff] to-[#784cfe] bg-clip-text text-transparent text-[42px] tracking-[-2px] font-bold">
-          Focus Protocol
+        <p className="text-muted-foreground font-medium tracking-widest text-xs uppercase mb-2">
+          Focus Timer
+        </p>
+        <h1 className="text-foreground text-5xl tracking-normal leading-none font-semibold mb-3">
+          Deep Work
         </h1>
-        <p className="text-[#784cfe] text-[14px] mt-1 font-medium italic opacity-80">
+        <p className="text-muted-foreground text-sm font-medium">
           Eliminate distractions. Execute the objective.
         </p>
+        {sessionsCompleted > 0 && (
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <div className="px-3 py-1 rounded bg-muted text-xs font-medium text-foreground">
+              {sessionsCompleted} session{sessionsCompleted !== 1 ? "s" : ""} completed today
+            </div>
+          </div>
+        )}
       </motion.div>
 
-      <motion.div variants={itemVariants} className="flex gap-3 mb-12 bg-[rgba(30,30,35,0.5)] p-1.5 rounded-2xl border border-[rgba(255,255,255,0.05)] backdrop-blur-xl">
+      {/* Mode Selector */}
+      <motion.div
+        variants={itemVariants}
+        className="flex gap-2 mb-12 p-1.5 rounded-full bg-muted/50 border border-border"
+      >
         {(["pomodoro", "short", "long"] as TimerMode[]).map((m) => (
           <button
             key={m}
             onClick={() => handleModeChange(m)}
-            className={`px-6 py-2 rounded-xl text-[11px] tracking-[1px] font-bold transition-all ${mode === m
-              ? "bg-[#784cfe] text-white shadow-[0_0_20px_rgba(120,76,254,0.3)]"
-              : "text-[#666] hover:text-[#999] hover:bg-white/5"
-              }`}
+            className={`px-6 py-2 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+              mode === m
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`}
           >
-            {m.toUpperCase()}
+            {m === "pomodoro" ? "Focus" : m === "short" ? "Short Break" : "Long Break"}
           </button>
         ))}
       </motion.div>
 
+      {/* Timer Ring */}
       <motion.div
         variants={itemVariants}
-        className="relative w-[340px] h-[340px] rounded-full bg-[rgba(20,20,25,0.6)] border border-[rgba(255,255,255,0.05)] backdrop-blur-3xl flex flex-col items-center justify-center shadow-[0_0_80px_rgba(0,0,0,0.5)]"
+        className="relative w-[360px] h-[360px] md:w-[400px] md:h-[400px] rounded-full flex flex-col items-center justify-center"
       >
-        <div className="absolute inset-0 rounded-full border-2 border-[#784cfe] border-t-transparent animate-[spin_4s_linear_infinite] opacity-30" />
-        <div className="absolute inset-4 rounded-full border border-[#784cfe]/10" />
-        <span className="text-[84px] text-white tracking-[-4px] font-bold font-mono">
-          {formatTime(timeLeft)}
-        </span>
+        {/* Progress Ring */}
+        <svg className="absolute inset-0 w-full h-full -rotate-90">
+          <circle
+            cx="50%"
+            cy="50%"
+            r="190"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            className="text-border"
+          />
+          <motion.circle
+            cx="50%"
+            cy="50%"
+            r="190"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeOffset}
+            strokeLinecap="round"
+            transition={{ duration: 0.5, ease: "linear" }}
+            className="text-foreground"
+          />
+        </svg>
+
+        <div className="relative z-10 flex flex-col items-center justify-center translate-y-2">
+          <span className="text-7xl md:text-[100px] text-foreground tracking-normaler font-semibold tabular-nums leading-none">
+            {formatTime(timeLeft)}
+          </span>
+          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-6">
+            {MODE_LABELS[mode]}
+          </span>
+        </div>
       </motion.div>
 
+      {/* Controls */}
       <motion.div variants={itemVariants} className="flex items-center gap-8 mt-12">
         <button
           onClick={resetTimer}
-          className="w-14 h-14 rounded-2xl bg-[rgba(60,60,60,0.2)] border border-[rgba(255,255,255,0.05)] flex items-center justify-center hover:bg-[rgba(255,255,255,0.05)] hover:border-[#784cfe]/30 transition-all text-[#666] hover:text-[#784cfe]"
+          className="group w-14 h-14 rounded-full bg-muted border border-border flex items-center justify-center hover:bg-muted/80 transition-colors text-muted-foreground hover:text-foreground active:scale-95"
         >
-          <RotateCcw size={22} />
+          <RotateCcw size={20} className="group-hover:-rotate-45 transition-transform" />
         </button>
 
-        <GlassButton
+        <button
           onClick={toggleTimer}
-          size="lg"
-          className="!rounded-[32px]"
-          contentClassName="flex items-center justify-center w-24 h-24"
+          className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-md active:scale-95 ${
+            isActive
+              ? "bg-muted text-foreground border border-border"
+              : "bg-foreground text-background"
+          }`}
         >
           {isActive ? (
-            <Pause size={40} className="text-white fill-white" />
+            <Pause size={32} className="fill-current" />
           ) : (
-            <Play size={40} className="text-white fill-white ml-2" />
+            <Play size={32} className="fill-current ml-1" />
           )}
-        </GlassButton>
+        </button>
 
         <button
-          className="w-14 h-14 rounded-2xl bg-[rgba(60,60,60,0.2)] border border-[rgba(255,255,255,0.05)] flex items-center justify-center hover:bg-[rgba(255,255,255,0.05)] hover:border-[#784cfe]/30 transition-all text-[#666] hover:text-[#784cfe]"
+          onClick={() => {
+            if (Notification.permission !== "granted") {
+              Notification.requestPermission().then((perm) => {
+                if (perm === "granted") toast.success("Notifications enabled!");
+              });
+            } else {
+              toast("Notifications are already enabled", { icon: "🔔" });
+            }
+          }}
+          className="group w-14 h-14 rounded-full bg-muted border border-border flex items-center justify-center hover:bg-muted/80 transition-colors text-muted-foreground hover:text-foreground active:scale-95"
+          title="Enable notifications"
         >
-          <Target size={22} />
+          <Bell size={20} className="group-hover:scale-110 transition-transform" />
         </button>
       </motion.div>
     </motion.div>
   );
 }
+

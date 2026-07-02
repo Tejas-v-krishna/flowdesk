@@ -41,7 +41,7 @@ export default function KeyboardShortcutsModal({ open, onClose }) {
                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                        className="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-3xl p-6 shadow-2xl"
+                        className="relative w-full max-w-sm bg-[#111] border border-white/10 rounded-md p-6 shadow-2xl"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xs font-mono uppercase tracking-[0.3em] text-neutral-400">Keyboard Shortcuts</h2>
@@ -56,7 +56,7 @@ export default function KeyboardShortcutsModal({ open, onClose }) {
                                     <span className="text-sm text-neutral-300">{shortcut.description}</span>
                                     <div className="flex items-center gap-1">
                                         {shortcut.keys.map((key, j) => (
-                                            <kbd key={j} className="px-2 py-1 text-[10px] font-mono bg-white/5 border border-white/10 rounded-lg text-neutral-300 shadow-inner">
+                                            <kbd key={j} className="px-2 py-1 text-[10px] font-mono bg-white/5 border border-white/10 rounded-md text-neutral-300 shadow-inner">
                                                 {key}
                                             </kbd>
                                         ))}

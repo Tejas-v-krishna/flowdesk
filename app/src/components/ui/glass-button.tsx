@@ -23,7 +23,7 @@ const glassButtonVariants = cva(
 );
 
 const glassButtonTextVariants = cva(
-    "glass-button-text relative block select-none tracking-tighter",
+    "glass-button-text relative block select-none tracking-normaler",
     {
         variants: {
             size: {
@@ -85,3 +85,4 @@ const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>(
 GlassButton.displayName = "GlassButton";
 
 export { GlassButton, glassButtonVariants };
+

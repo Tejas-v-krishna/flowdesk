@@ -20,11 +20,9 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
             },
         });
 
-        // Initial state
         gsap.set([textRef.current, logoRef.current], { opacity: 0, y: 20 });
         gsap.set(progressRef.current, { scaleX: 0 });
 
-        // Animation Sequence
         tl.to(logoRef.current, { opacity: 1, y: 0, duration: 1, ease: "power3.out" })
             .to(textRef.current, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.5")
             .to(
@@ -61,21 +59,20 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
                     ref={logoRef}
                     src="/Group 5.svg"
                     alt="FlowDesk"
-                    className="w-[300px] h-auto filter drop-shadow-[0_0_30px_rgba(120,76,254,0.3)]"
+                    className="w-[300px] h-auto filter drop-"
                 />
-                {/* Glow effect */}
-                <div className="absolute inset-0 bg-[#784cfe] opacity-10 blur-[60px] rounded-full scale-150 pointer-events-none" />
+                <div className="absolute inset-0 bg-[#000000] opacity-10 blur-[60px] rounded-full scale-150 pointer-events-none" />
             </div>
 
             <div ref={textRef} className="flex flex-col items-center gap-4">
                 <div className="flex flex-col items-center">
-                    <span className="text-[#784cfe] text-[10px] tracking-[4px] font-bold uppercase mb-1">
-                        
+                    <span className="text-[#000000] text-[10px] tracking-[4px] font-bold uppercase mb-3">
+                        INITIALIZING WORKSPACE
                     </span>
                     <div className="h-[2px] w-[200px] bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden relative">
                         <div
                             ref={progressRef}
-                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#784cfe] to-[#ccbaff] origin-left"
+                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#000000] to-[#ffffff] origin-left"
                             style={{ width: "100%" }}
                         />
                     </div>
@@ -83,7 +80,7 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
 
                 <div className="flex items-baseline gap-2 tabular-nums">
                     <span className="text-white text-[14px] font-bold">{percent}%</span>
-                    <span className="text-[rgba(255,255,255,0.2)] text-[10px] uppercase tracking-wider font-medium">
+                    <span className="text-[rgba(255,255,255,0.2)] text-[10px] uppercase tracking-normal font-medium">
                         Loading...
                     </span>
                 </div>
@@ -92,9 +89,7 @@ export function LoadingScreen({ onComplete }: { onComplete: () => void }) {
             {/* Decorative side lines */}
             <div className="absolute left-10 top-1/2 -translate-y-1/2 h-[200px] w-[1px] bg-gradient-to-b from-transparent via-[rgba(120,76,254,0.2)] to-transparent" />
             <div className="absolute right-10 top-1/2 -translate-y-1/2 h-[200px] w-[1px] bg-gradient-to-b from-transparent via-[rgba(120,76,254,0.2)] to-transparent" />
-
-            
-            
         </div>
     );
 }
+

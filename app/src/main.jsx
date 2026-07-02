@@ -5,6 +5,7 @@ import './styles/tailwind.css'
 import './styles/fonts.css'
 import './styles/theme.css'
 import './styles/glass-button.css'
+import './i18n'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient({

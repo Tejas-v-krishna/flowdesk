@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Plus, ClipboardList, X, Check, Trash2, Loader2 } from "lucide-react";
 import { GlassPanel } from "./GlassPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -78,7 +79,7 @@ export function TaskManager() {
 
   const priorityColors: Record<string, string> = {
     Low: "#42ff6b",
-    Medium: "#ccbaff",
+    Medium: "#ffffff",
     High: "#ff4242",
     Urgent: "#ff0000",
   };
@@ -97,7 +98,7 @@ export function TaskManager() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <h3 className="text-foreground text-[16px] font-semibold tracking-tight">
+          <h3 className="text-foreground text-[16px] font-semibold tracking-normal">
             Task Manager
           </h3>
           {isLoading && <Loader2 size={14} className="text-primary animate-spin" />}
@@ -107,7 +108,7 @@ export function TaskManager() {
           className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shadow-sm active:scale-95"
         >
           <Plus size={16} />
-          <span className="text-[13px] font-semibold tracking-tight">
+          <span className="text-[13px] font-semibold tracking-normal">
             Add Task
           </span>
         </button>
@@ -115,50 +116,57 @@ export function TaskManager() {
 
       {/* Add Task Form */}
       {showForm && (
-        <div className="mb-4 p-4 rounded-2xl bg-[rgba(46,29,97,0.3)] border border-[rgba(204,186,255,0.2)] backdrop-blur-xl">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-5 rounded-2xl bg-card border border-border/50 shadow-lg backdrop-blur-xl"
+        >
           <input
             type="text"
-            placeholder="Task title..."
+            placeholder="What needs to be done?"
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTask()}
-            className="w-full bg-[rgba(3,0,12,0.4)] border border-[rgba(159,159,159,0.15)] rounded-xl px-4 py-2.5 text-[#ccbaff] placeholder-[#ccbaff]/40 outline-none text-[13px] mb-3 focus:border-[rgba(204,186,255,0.4)] transition-colors"
+            className="w-full bg-muted/30 border border-border/30 rounded-xl px-4 py-3 text-foreground placeholder-muted-foreground/50 outline-none text-[14px] mb-4 focus:border-primary/50 transition-all focus:ring-1 focus:ring-primary/20"
             autoFocus
             disabled={createMutation.isPending}
           />
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex gap-2 flex-wrap">
               {(["Low", "Medium", "High"] as const).map((p) => (
                 <button
                   key={p}
                   onClick={() => setNewTaskPriority(p)}
-                  className={`px-3 py-1 rounded-full text-[11px] capitalize transition-all cursor-pointer ${newTaskPriority === p
-                    ? "bg-[rgba(120,76,254,0.4)] border border-[rgba(204,186,255,0.4)]"
-                    : "bg-[rgba(107,107,107,0.2)] border border-transparent hover:border-[rgba(159,159,159,0.2)]"
+                  className={`px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wide transition-all cursor-pointer border ${newTaskPriority === p
+                    ? "bg-primary/20 border-primary shadow-sm"
+                    : "bg-muted/50 border-transparent hover:border-border text-muted-foreground"
                     }`}
-                  style={{ color: priorityColors[p] }}
+                  style={{ color: newTaskPriority === p ? undefined : priorityColors[p] }}
                 >
-                  {p}
+                  {p.toUpperCase()}
                 </button>
               ))}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowForm(false)}
-                className="p-1.5 rounded-full bg-[rgba(107,107,107,0.2)] hover:bg-[rgba(255,66,66,0.2)] transition-colors cursor-pointer"
+                className="p-2 rounded-full bg-muted/50 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all cursor-pointer border border-transparent hover:border-destructive/20"
               >
-                <X size={14} className="text-[#ccbaff]" />
+                <X size={16} />
               </button>
               <button
                 onClick={addTask}
                 disabled={createMutation.isPending}
-                className="p-1.5 rounded-full bg-[rgba(120,76,254,0.4)] hover:bg-[rgba(120,76,254,0.6)] transition-colors cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-all cursor-pointer shadow-md active:scale-95 disabled:opacity-50 flex items-center gap-2"
               >
-                {createMutation.isPending ? <Loader2 size={14} className="animate-spin text-[#ccbaff]" /> : <Check size={14} className="text-[#ccbaff]" />}
+                {createMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <>
+                  <Check size={16} />
+                  <span className="text-[12px] font-bold">CREATE</span>
+                </>}
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Task List or Empty State */}
@@ -167,7 +175,7 @@ export function TaskManager() {
           <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-4">
             <ClipboardList size={24} className="text-muted-foreground/30" />
           </div>
-          <p className="text-foreground font-bold text-[15px] tracking-tight">Focus on what matters</p>
+          <p className="text-foreground font-bold text-[15px] tracking-normal">Focus on what matters</p>
           <p className="text-muted-foreground text-[12px] mt-1 text-center max-w-[200px]">Add a task to start tracking your daily progress.</p>
           <button
             onClick={() => setShowForm(true)}
@@ -182,50 +190,53 @@ export function TaskManager() {
           {tasks.map((task) => (
             <ContextMenu key={task._id}>
               <ContextMenuTrigger>
-                <div
-                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-muted/30 border border-border/50 hover:border-primary/30 transition-all group"
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-muted/20 border border-border/30 hover:border-primary/40 hover:bg-muted/40 transition-all group"
                 >
                   <button
                     onClick={() => toggleStatus(task._id, task.status)}
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${task.status === "Done"
-                      ? "bg-[#42ff6b]/30 border-[#42ff6b]"
+                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all cursor-pointer ${task.status === "Done"
+                      ? "bg-muted border-border"
                       : task.status === "In Progress"
-                        ? "bg-[#784cfe]/30 border-[#784cfe]"
-                        : "border-[rgba(204,186,255,0.3)] hover:border-[#784cfe]"
+                        ? "bg-primary/20 border-primary"
+                        : "border-border/60 hover:border-primary"
                       }`}
                   >
-                    {task.status === "Done" && <Check size={10} className="text-[#42ff6b]" />}
+                    {task.status === "Done" && <Check size={12} className="text-green-500" />}
                     {task.status === "In Progress" && (
-                      <div className="w-2 h-2 rounded-full bg-[#784cfe]" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                     )}
                   </button>
                   <div className="flex-1 min-w-0">
                     <span
-                      className={`text-[14px] font-medium tracking-tight ${task.status === "Done" ? "text-muted-foreground/40 line-through" : "text-foreground"
+                      className={`text-[15px] font-semibold tracking-normal block truncate ${task.status === "Done" ? "text-muted-foreground/50 line-through" : "text-foreground"
                         }`}
                     >
                       {task.title}
                     </span>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-1">
                       <span
-                        className="text-[10px] px-2 py-0.5 rounded-full"
+                        className="text-[10px] px-2 py-0.5 rounded-full font-bold tracking-normal"
                         style={{
-                          color: priorityColors[task.priority] || '#ccbaff',
-                          backgroundColor: `${priorityColors[task.priority] || '#ccbaff'}15`,
+                          color: task.priority === 'High' ? '#000000' : task.priority === 'Medium' ? 'var(--primary)' : '#000000',
+                          backgroundColor: task.priority === 'High' ? '#00000015' : task.priority === 'Medium' ? 'var(--primary)15' : '#00000015',
                         }}
                       >
-                        {task.priority || 'Medium'}
+                        {task.priority?.toUpperCase() || 'MEDIUM'}
                       </span>
-                      <span className="text-[10px] text-[#ccbaff]/40">{statusLabels[task.status] || task.status}</span>
+                      <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-normaler">{statusLabels[task.status] || task.status}</span>
                     </div>
                   </div>
                   <button
                     onClick={() => deleteTask(task._id)}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-[rgba(255,66,66,0.2)] transition-all cursor-pointer"
+                    className="opacity-0 group-hover:opacity-100 p-2 rounded-xl bg-destructive/5 hover:bg-destructive/10 transition-all cursor-pointer"
                   >
-                    <Trash2 size={12} className="text-[#ff4242]" />
+                    <Trash2 size={14} className="text-destructive" />
                   </button>
-                </div>
+                </motion.div>
               </ContextMenuTrigger>
               <ContextMenuContent>
                 <ContextMenuLabel>Task Actions</ContextMenuLabel>

@@ -20,7 +20,7 @@ export const Button = ({ className, variant = 'primary', size = 'md', ...props }
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className={cn(
-                'inline-flex items-center justify-center rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest leading-none',
+                'inline-flex items-center justify-center rounded-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest leading-none',
                 variants[variant],
                 sizes[size],
                 className
@@ -35,7 +35,7 @@ export const Input = ({ className, label, error, ...props }) => (
         {label && <label className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 pl-1">{label}</label>}
         <input
             className={cn(
-                "w-full h-12 px-4 rounded-xl bg-white border border-neutral-200 text-neutral-900 dark:bg-[#222] dark:border-white/5 dark:text-white text-sm transition-all focus:border-[#d946ef]/50 focus:ring-1 focus:ring-[#d946ef]/20 outline-none placeholder:text-neutral-400 dark:placeholder:text-neutral-600",
+                "w-full h-12 px-4 rounded-sm bg-card border border-neutral-200 text-neutral-900 dark:bg-[#222] dark:border-white/5 dark:text-white text-sm transition-all focus:border-[#d946ef]/50 focus:ring-1 focus:ring-[#d946ef]/20 outline-none placeholder:text-neutral-400 dark:placeholder:text-neutral-600",
                 error && "border-red-500/50",
                 className
             )}
@@ -46,7 +46,7 @@ export const Input = ({ className, label, error, ...props }) => (
 )
 
 export const Card = ({ className, children, ...props }) => (
-    <div className={cn("bg-white dark:bg-[#18181A] border border-neutral-200 dark:border-white/5 rounded-3xl p-6 shadow-sm dark:shadow-none transition-colors", className)} {...props}>
+    <div className={cn("bg-card dark:bg-[#18181A] border border-neutral-200 dark:border-white/5 rounded-md p-6 shadow-sm dark:shadow-none transition-colors", className)} {...props}>
         {children}
     </div>
 )

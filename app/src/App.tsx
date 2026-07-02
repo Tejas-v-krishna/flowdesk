@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
+import { useAppStore } from "./store/useAppStore";
 
 import { Layout } from "./components/Layout.tsx";
 import { LoginPage } from "./pages/LoginPage";
@@ -13,20 +14,23 @@ import { ProjectsPage } from "./pages/ProjectsPage";
 import { TasksPage } from "./pages/TasksPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { FocusPage } from "./pages/FocusPage";
-import { NotesPage } from "./pages/NotesPage";
+import NotesPage from "./pages/NotesPage";
 import { AIAssistantPage } from "./pages/AIAssistantPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { KanbanPage } from "./pages/KanbanPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
-import { ProfilePage } from "./pages/ProfilePage";
+import ProfilePage from "./pages/ProfilePage";
 import { LoadingScreen } from "./components/LoadingScreen";
-import { useState } from "react";
-import { useAppStore } from "./store/useAppStore";
-import { BackgroundVideo } from "./components/ui/BackgroundVideo";
+import FinancePage from "./pages/FinancePage";
+import GoalsPage from "./pages/GoalsPage";
+import { HomePage } from "./pages/HomePage";
+
+import { AestheticProvider } from "./context/AestheticContext";
 
 export default function App() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useAuthStore((state) => state.user);
-  const theme = useThemeStore((state) => state.theme);
+  const isAuthenticated = useAuthStore((state: any) => state.isAuthenticated);
+  const user = useAuthStore((state: any) => state.user);
+  const theme = useThemeStore((state: any) => state.theme);
   const queryClient = useQueryClient();
   const { isInitialLoadingComplete, setInitialLoadingComplete } = useAppStore();
 
@@ -66,29 +70,38 @@ export default function App() {
   }, [isAuthenticated, user, queryClient]);
 
   return (
-    <BrowserRouter>
-      {!isInitialLoadingComplete && <LoadingScreen onComplete={() => setInitialLoadingComplete(true)} />}
-      <BackgroundVideo />
-      <Toaster position="bottom-right" />
-      <Routes>
-        <Route
-          path="/login"
-          element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />}
-        />
+    <AestheticProvider>
+      <BrowserRouter>
+        {!isInitialLoadingComplete && <LoadingScreen onComplete={() => setInitialLoadingComplete(true)} />}
+        <Toaster position="bottom-right" />
+        <Routes>
+          <Route
+            path="/login"
+            element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" />}
+          />
 
-        <Route element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="projects" element={<ProjectsPage />} />
-          <Route path="tasks" element={<TasksPage />} />
-          <Route path="calendar" element={<CalendarPage />} />
-          <Route path="focus" element={<FocusPage />} />
-          <Route path="notes" element={<NotesPage />} />
-          <Route path="ai" element={<AIAssistantPage />} />
-          <Route path="analytics" element={<AnalyticsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="*" element={<PlaceholderPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          <Route
+            path="/"
+            element={<HomePage />}
+          />
+
+          <Route element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="projects" element={<ProjectsPage />} />
+            <Route path="tasks" element={<TasksPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="focus" element={<FocusPage />} />
+            <Route path="notes" element={<NotesPage />} />
+            <Route path="ai" element={<AIAssistantPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="kanban" element={<KanbanPage />} />
+            <Route path="finance" element={<FinancePage />} />
+            <Route path="goals" element={<GoalsPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="*" element={<PlaceholderPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AestheticProvider>
   );
 }
