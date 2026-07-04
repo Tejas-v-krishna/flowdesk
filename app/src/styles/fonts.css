@@ -1,1 +1,25 @@
-/* Custom fonts can be placed here */
+﻿/* Google Sans font family - imported via index.html */
+/* Used as the primary font throughout Flowdesk */
+
+/* Fallback font stack for Google Sans */
+:root {
+  --font-google-sans: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-google-sans-display: 'Google Sans Display', 'Google Sans', 'Roboto', sans-serif;
+  --font-google-sans-mono: 'Google Sans Mono', 'Roboto Mono', monospace;
+}
+
+/* Apply globally */
+*, *::before, *::after {
+  font-family: var(--font-google-sans) !important;
+}
+
+h1, h2, h3,
+.text-display,
+.hero-headline {
+  font-family: var(--font-google-sans-display) !important;
+}
+
+code, pre, kbd,
+.font-mono {
+  font-family: var(--font-google-sans-mono) !important;
+}
